@@ -2,23 +2,28 @@
 import rospy
 from std_srvs.srv import Trigger, TriggerRequest
 from sensor_msgs.msg import PointCloud2
-import ros_numpy
+import sensor_msgs.point_cloud2 as pc2
 import numpy as np
+import open3d as o3d
 
 def callback_fn(msg: PointCloud2):
-    pc = ros_numpy.numpify(msg)
-    points=np.zeros((pc.shape[0]*pc.shape[1],3))
-    points[:,0]=pc['x'].flatten()
-    points[:,1]=pc['y'].flatten()
-    points[:,2]=pc['z'].flatten()
+    pc = np.array(list(pc2.read_points(msg, field_names=("x","y","z","rgb","normal_x","normal_y","normal_z"),skip_nans=True)))
+    points = np.zeros((pc.shape[0],3))
+    normals= np.zeros((pc.shape[0],3))
+    
+    points[:,0]=pc[:,0]
+    points[:,1]=pc[:,1]
+    points[:,2]=pc[:,2]
+    normals[:,0]=pc[:,4]
+    normals[:,1]=pc[:,5]
+    normals[:,2]=pc[:,6]
     
     print("Received point cloud lengths")
-    print(points[:,0].shape)
-    print(points[:,1].shape)
-    print(points[:,2].shape)
-    print()
+    pcd = o3d.geometry.PointCloud()
+    pcd.points = o3d.utility.Vector3dVector(points)
+    pcd.normals = o3d.utility.Vector3dVector(normals)
+    o3d.visualization.draw_geometries([pcd])
     
-    pass
 if __name__ == '__main__':
     rospy.init_node('test_trigger')
     
@@ -31,8 +36,8 @@ if __name__ == '__main__':
     motion_service = rospy.ServiceProxy('/motion/trigger_frame', Trigger)
     
     frame_trigger = TriggerRequest()
-    
     phoxi_service(frame_trigger)
+    rospy.sleep(3)
     motion_service(frame_trigger)
     
     rospy.spin()

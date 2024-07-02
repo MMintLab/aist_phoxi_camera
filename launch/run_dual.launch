@@ -1,0 +1,56 @@
+<launch>
+  <arg name="rate"			default="20"/>
+  <arg name="trigger_mode"		default="0"/>
+  <arg name="intensity_scale"		default="0.5"/>
+  <arg name="send_point_cloud"		default="true"/>
+  <arg name="send_normal_map"		default="true"/>
+  <arg name="send_depth_map"		default="true"/>
+  <arg name="send_confidence_map"	default="false"/>
+  <arg name="send_event_map"		default="false"/>
+  <arg name="send_texture"		default="true"/>
+  <arg name="send_color_camera_image"	default="true"/>
+  <arg name="manager"			default=""/>
+  <arg name="nthreads"			default="4"/>
+
+    <node name="motion" pkg="nodelet" type="nodelet" output="screen"
+    args="standalone aist_phoxi_camera/aist_phoxi_camera $(arg manager)">
+        <param name="id" value="JHE-129"/>
+        <param name="rate" value="$(arg rate)"/>
+        <param name="frame" value="motion_sensor"/>
+        <param name="color_camera_frame" value="motion_color_sensor"/>
+        <param name="trigger_mode" value="$(arg trigger_mode)"/>
+        <param name="intensity_scale"	value="$(arg intensity_scale)"/>
+        <param name="send_point_cloud"	value="$(arg send_point_cloud)"/>
+        <param name="send_normal_map"	value="$(arg send_normal_map)"/>
+        <param name="send_depth_map"	value="$(arg send_depth_map)"/>
+        <param name="send_confidence_map"	value="$(arg send_confidence_map)"/>
+        <param name="send_event_map"	value="$(arg send_event_map)"/>
+        <param name="send_texture"		value="$(arg send_texture)"/>
+        <param name="send_color_camera_image"
+                value="$(arg
+                        send_color_camera_image)"/>
+    </node>
+    <node name="phoxi" pkg="nodelet" type="nodelet" output="screen"
+    args="standalone aist_phoxi_camera/aist_phoxi_camera $(arg manager)">
+        <param name="id" value="DHV-146"/>
+        <param name="rate" value="$(arg rate)"/>
+        <param name="frame" value="phoxi_sensor"/>
+        <param name="color_camera_frame" value="phoxi_color_sensor"/>
+        <param name="trigger_mode" value="$(arg trigger_mode)"/>
+        <param name="intensity_scale"	value="$(arg intensity_scale)"/>
+        <param name="send_point_cloud"	value="$(arg send_point_cloud)"/>
+        <param name="send_normal_map"	value="$(arg send_normal_map)"/>
+        <param name="send_depth_map"	value="$(arg send_depth_map)"/>
+        <param name="send_confidence_map"	value="$(arg send_confidence_map)"/>
+        <param name="send_event_map"	value="$(arg send_event_map)"/>
+        <param name="send_texture"		value="$(arg send_texture)"/>
+        <param name="send_color_camera_image"
+                value="$(arg
+                        send_color_camera_image)"/>
+    </node>
+
+    <node name="$(anon rviz)" pkg="rviz" type="rviz"
+    args="-d $(find aist_phoxi_camera)/launch/aist_phoxi_camera.rviz"
+    respawn="false" output="screen"/>
+    <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure"/>
+</launch>
