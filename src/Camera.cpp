@@ -171,9 +171,9 @@ scale_copy(const uint16_t* in, const uint16_t* ie, float* out, float scale)
 ************************************************************************/
 Camera::Camera(ros::NodeHandle& nh, const std::string& nodelet_name)
     :
-#if defined(PROFILE)
-     profiler_t(8),
-#endif
+// #if defined(PROFILE)
+//      profiler_t(8),
+// #endif
      _nodelet_name(nodelet_name),
      _factory(),
      _device(nullptr),
@@ -208,8 +208,7 @@ Camera::Camera(ros::NodeHandle& nh, const std::string& nodelet_name)
      _color_camera_pub(  _it.advertiseCamera("color/image",	1)),
      _static_broadcaster()
 {
-    using namespace	pho::api;
-
+    using namespace	pho::api;	
   // Search for a device with specified ID.
     auto	id = nh.param<std::string>("id",
 					   "InstalledExamples-basic-example");
@@ -1626,7 +1625,7 @@ Camera::publish_cloud(const ros::Time& stamp, float distanceScale) const
   // Convert pho::api::PointCloud32f to sensor_msgs::PointCloud2
     cloud_p	cloud(new cloud_t);
     cloud->header.stamp    = stamp;
-    cloud->header.frame_id = _frame_id;
+    cloud->header.frame_id = "world_frame";
     cloud->is_bigendian    = false;
     cloud->is_dense	   = _dense_cloud;
 
@@ -1796,7 +1795,7 @@ Camera::publish_image(const ros::Time& stamp,
     if (publisher.getNumSubscribers() == 0 || phoxi_image.Empty())
 	return;
 
-    publisher.publish(create_image(stamp, _frame_id,
+    publisher.publish(create_image(stamp, "world_frame",
 				   encoding, scale, phoxi_image));
 }
 
@@ -1823,7 +1822,7 @@ Camera::publish_camera_info(const ros::Time& stamp)
     }
 
     _camera_info_pub.publish(
-	create_camera_info(stamp, _frame_id,
+	create_camera_info(stamp, "world_frame",
 			   _frame->DepthMap.Size.Width,
 			   _frame->DepthMap.Size.Height,
 			   _camera_matrix,
@@ -1832,6 +1831,27 @@ Camera::publish_camera_info(const ros::Time& stamp)
 			   _frame->Info.SensorXAxis,
 			   _frame->Info.SensorYAxis,
 			   _frame->Info.SensorZAxis));
+
+	constexpr static double		s = 0.001;  // milimeters ==> meters
+	geometry_msgs::TransformStamped	transform;
+	transform.header.stamp    = stamp;
+	transform.header.frame_id = "world_frame";
+	transform.child_frame_id  = _color_camera_frame_id;
+	transform.transform
+	= tf2::toMsg(
+	tf2::Transform({_frame->Info.SensorXAxis.x,
+			_frame->Info.SensorYAxis.x,
+			_frame->Info.SensorZAxis.x,
+			_frame->Info.SensorXAxis.y,
+			_frame->Info.SensorYAxis.y,
+			_frame->Info.SensorZAxis.y,
+			_frame->Info.SensorXAxis.z,
+			_frame->Info.SensorYAxis.z,
+			_frame->Info.SensorZAxis.z},
+				{s * _frame->Info.SensorPosition.x,
+			s * _frame->Info.SensorPosition.y,
+			s * _frame->Info.SensorPosition.z}));
+	_static_broadcaster.sendTransform(transform);
 }
 
 #if defined(HAVE_COLOR_CAMERA)
@@ -1842,26 +1862,7 @@ Camera::publish_color_camera(const ros::Time& stamp)
     {
 	_color_camera_image_size = _frame->ColorCameraImage.Size;
 
-	constexpr static double		s = 0.001;  // milimeters ==> meters
-	geometry_msgs::TransformStamped	transform;
-	transform.header.stamp    = stamp;
-	transform.header.frame_id = _frame_id;
-	transform.child_frame_id  = _color_camera_frame_id;
-	transform.transform
-	    = tf2::toMsg(
-		tf2::Transform({_frame->Info.ColorCameraXAxis.x,
-				_frame->Info.ColorCameraYAxis.x,
-				_frame->Info.ColorCameraZAxis.x,
-				_frame->Info.ColorCameraXAxis.y,
-				_frame->Info.ColorCameraYAxis.y,
-				_frame->Info.ColorCameraZAxis.y,
-				_frame->Info.ColorCameraXAxis.z,
-				_frame->Info.ColorCameraYAxis.z,
-				_frame->Info.ColorCameraZAxis.z},
-			       {s * _frame->Info.ColorCameraPosition.x,
-				s * _frame->Info.ColorCameraPosition.y,
-				s * _frame->Info.ColorCameraPosition.z}));
-	_static_broadcaster.sendTransform(transform);
+
 
 	NODELET_INFO_STREAM('('
 			    << _device->HardwareIdentification.GetValue()

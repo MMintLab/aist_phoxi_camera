@@ -1,8 +1,13 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required (VERSION 3.10)
 project(aist_phoxi_camera)
 
 ## Compile as C++17, supported in ROS melodic and newer
 enable_language(CXX)
+
+
+if(POLICY CMP0079)
+    cmake_policy(SET CMP0079 NEW)
+endif()
 
 set(CMAKE_CXX_STANDARD		17)
 set(CMAKE_CXX_STANDARD_REQUIRED	ON)
@@ -12,7 +17,10 @@ set(CMAKE_CXX_FLAGS_RELEASE	"")
 set(CMAKE_CXX_FLAGS_DEBUG	"-g -DPROFILE")
 set(CMAKE_CXX_BUILD_TYPE	Release)
 
+add_compile_options(-std=c++1y)
+add_compile_options(-pthread)
 find_package(PhoXi REQUIRED CONFIG PATHS "$ENV{PHOXI_CONTROL_PATH}")
+set(CMAKE_AUTOMOC ON)
 
 find_package(catkin REQUIRED
   COMPONENTS
@@ -57,26 +65,21 @@ add_dependencies(
 
 target_link_libraries(
   ${PROJECT_NAME}
-  ${PHOXI_LIBRARY}
   ${catkin_LIBRARIES}
+  ${PHOXI_LIBRARY}
+  $<$<PLATFORM_ID:Linux>:rt>
 )
 
-install(
-  TARGETS
-    ${PROJECT_NAME}
-  ARCHIVE
-    DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY
-    DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME
-    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+target_include_directories(${PROJECT_NAME} PUBLIC ${PHOXI_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
+
+install(TARGETS ${PROJECT_NAME}
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(
-  FILES
-    ${PHOXI_LIB_RELEASE_PER_COMPILER}.${PHO_SOFTWARE_VERSION}
-  DESTINATION
-    ${CATKIN_PACKAGE_LIB_DESTINATION}
+install(FILES ${PHOXI_LIB_RELEASE_PER_COMPILER}.${PHO_SOFTWARE_VERSION}
+  DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )
 
 catkin_install_python(

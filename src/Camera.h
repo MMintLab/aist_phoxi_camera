@@ -48,9 +48,9 @@
 
 #include <PhoXi.h>
 
-#if defined(PROFILE)
-#  include "TU/Profiler.h"
-#endif
+// #if defined(PROFILE)
+// #  include "TU/Profiler.h"
+// #endif
 
 namespace aist_phoxi_camera
 {
@@ -58,9 +58,9 @@ namespace aist_phoxi_camera
 *   class Camera                                                        *
 ************************************************************************/
 class Camera
-#if defined(PROFILE)
-    : public TU::Profiler<>
-#endif
+// #if defined(PROFILE)
+//     : public TU::Profiler<>
+// #endif
 {
   private:
     using cloud_t		 = sensor_msgs::PointCloud2;
@@ -70,9 +70,9 @@ class Camera
     using camera_info_t		 = sensor_msgs::CameraInfo;
     using camera_info_p		 = sensor_msgs::CameraInfoPtr;
     using ddynamic_reconfigure_t = ddynamic_reconfigure::DDynamicReconfigure;
-#if defined(PROFILE)
-    using profiler_t		 = TU::Profiler<>;
-#endif
+// #if defined(PROFILE)
+//     using profiler_t		 = TU::Profiler<>;
+// #endif
 
     enum
     {
@@ -158,16 +158,16 @@ class Camera
 		}
     void	profiler_start(int n)
 		{
-#if defined(PROFILE)
-		    profiler_t::start(n);
-#endif
+// #if defined(PROFILE)
+// 		    profiler_t::start(n);
+// #endif
 		}
     void	profiler_print(std::ostream& out) const
 		{
-#if defined(PROFILE)
-		    profiler_t::nextFrame();
-		    profiler_t::print(out);
-#endif
+// #if defined(PROFILE)
+// 		    profiler_t::nextFrame();
+// 		    profiler_t::print(out);
+// #endif
 		}
 
   private:
