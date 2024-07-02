@@ -274,6 +274,12 @@ Camera::Camera(ros::NodeHandle& nh, const std::string& nodelet_name)
     _device->ClearBuffer();
     _device->StartAcquisition();
 
+    auto MarkerSpaceSetting = pho::api::PhoXiCoordinatesSettings();
+    MarkerSpaceSetting.CoordinateSpace = pho::api::PhoXiCoordinateSpace::MarkerSpace;
+    MarkerSpaceSetting.MarkersSettings.InvertedMarkers = true;
+    MarkerSpaceSetting.RecognizeMarkers = true;
+	_device->CoordinatesSettings.SetValue(MarkerSpaceSetting);
+
     NODELET_INFO_STREAM('('
 			<< _device->HardwareIdentification.GetValue()
 			<< ") aist_phoxi_camera is active");
